@@ -13,10 +13,7 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userService.findOneByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
-      //TODO delete
-      console.log(password);
-      return result;
+      return { ...user, password: undefined };
     }
     return null;
   }
@@ -25,6 +22,8 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     return this.userService.create({
       ...createUserDto,
+      //TODO delete this hack
+      refreshToken: 'invalidRefreshToken',
       password: hashedPassword,
     });
   }
