@@ -7,9 +7,12 @@ import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
 import { JwtAccessStrategy } from './strategies/jwt-access.stratergy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.stratergy';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/user/user.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([User]),
     // Подключаем PassportModule для работы с аутентификацией
     PassportModule.register({ defaultStrategy: 'jwt-access' }),
 
