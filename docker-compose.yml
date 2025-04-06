@@ -10,17 +10,17 @@ services:
       - ./data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-  app:
-    build: .
-    ports:
-      - "4000:4000"
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USERNAME: root
-      DB_PASSWORD: root
-      DB_NAME: nestjs_api
-      JWT_ACCESS_SECRET: your-access-secret-key
-      JWT_REFRESH_SECRET: your-refresh-secret-key
-    depends_on:
-      - db
+  # app:
+  #   build: .
+  #   ports:
+  #     - "4000:4000"
+  #   environment:
+  #     DB_HOST: db
+  #     DB_PORT: 5432
+  #     DB_USERNAME: root
+  #     DB_PASSWORD: root
+  #     DB_NAME: nestjs_api
+  #     JWT_ACCESS_SECRET: your-access-secret-key
+  #     JWT_REFRESH_SECRET: your-refresh-secret-key
+  #   depends_on:
+  #     - db

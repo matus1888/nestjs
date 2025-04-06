@@ -9,14 +9,29 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   refreshToken: string;
 
   @Column()
   password: string;
 
   @Column({ nullable: true })
+  firstName: string;
+
+  @Column({ nullable: true })
+  lastName: string;
+
+  @Column({ nullable: true })
   avatar: string;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  birthday: string;
+
+  @Column({ nullable: true })
+  about: string;
 
   @OneToMany(() => Post, (post) => post.author)
   posts: Post[];

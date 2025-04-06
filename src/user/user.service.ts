@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -35,12 +34,10 @@ export class UserService {
       throw new BadRequestException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     const newUser = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
+      email: createUserDto.email,
+      password: createUserDto.password,
     });
-
     return this.userRepository.save(newUser);
   }
 
@@ -79,21 +76,32 @@ export class UserService {
     updateUserDto: UpdateUserDto,
   ): Promise<User> {
     const user = await this.findOneById(userId);
+    const nUser = { ...user };
+    const { about, phone, birthday, firstName, lastName } = updateUserDto;
 
     if (updateUserDto.email) {
       const existingUser = await this.findOneByEmail(updateUserDto.email);
       if (existingUser && existingUser.id !== userId) {
         throw new BadRequestException('Email already exists');
       }
-      user.email = updateUserDto.email;
+      nUser.email = updateUserDto.email;
     }
 
-    if (updateUserDto.password) {
-      const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
-      user.password = hashedPassword;
-    }
+    nUser.about = about;
+    nUser.phone = phone;
+    nUser.birthday = birthday;
+    nUser.firstName = firstName;
+    nUser.lastName = lastName;
 
-    return this.userRepository.save(user);
+    //TODO
+    // if (updateUserDto.password) {
+    //   const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+    //   user.password = hashedPassword;
+    // }
+
+    await this.userRepository.save(nUser);
+    const res = await this.findOneById(userId);
+    return res;
   }
 
   /**

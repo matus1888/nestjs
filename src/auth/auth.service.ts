@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
@@ -11,29 +11,46 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.userService.findOneByEmail(email);
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return { ...user, password: undefined };
+    const dbUser = await this.userService.findOneByEmail(email);
+    if (!dbUser) {
+      return null;
+    }
+    const isValid = await bcrypt.compare(password, dbUser.password);
+    if (isValid) {
+      return dbUser;
     }
     return null;
   }
 
-  async register(createUserDto: any) {
+  async register(createUserDto: { email: string; password: string }) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    return this.userService.create({
+    const user = this.userService.create({
       ...createUserDto,
-      //TODO delete this hack
-      refreshToken: 'invalidRefreshToken',
       password: hashedPassword,
     });
+    return { ...user, password: undefined };
   }
 
-  async login(user: any) {
-    const payload = { sub: user.id, email: user.email };
-    return {
-      access_token: this.jwtService.sign(payload, { expiresIn: '15m' }),
-      refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
-    };
+  async iam(token: string, email: string) {
+    const isValidToken = this.jwtService.verify(token.split(' ')?.[1]); // delete 'Bearer'
+    if (isValidToken) {
+      return this.userService.findOneByEmail(email);
+    }
+  }
+
+  async login(user: { email: string; password: string }) {
+    const { email, password } = user;
+    const validUser = await this.validateUser(email, password);
+    console.log(validUser);
+    if (validUser) {
+      const payload = { sub: validUser.id, email: validUser.email };
+      return {
+        user: { ...validUser, password: undefined },
+        access_token: this.jwtService.sign(payload, { expiresIn: '15m' }),
+        refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
+      };
+    }
+    throw new HttpException('no valid data', 404);
   }
 
   async refreshTokens(userId: string, refreshToken: string) {

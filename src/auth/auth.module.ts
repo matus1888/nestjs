@@ -17,9 +17,11 @@ import { User } from 'src/user/user.entity';
     PassportModule.register({ defaultStrategy: 'jwt-access' }),
 
     // Настройка JwtModule для генерации токенов
-    JwtModule.register({
-      secret: process.env.JWT_ACCESS_SECRET, // Секретный ключ для access токена
-      signOptions: { expiresIn: '15m' }, // Время жизни access токена
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: process.env.JWT_ACCESS_SECRET, // Секретный ключ для access токена
+        signOptions: { expiresIn: '15m' }, // Время жизни access токена
+      }),
     }),
 
     // Импортируем UserModule для работы с пользователями

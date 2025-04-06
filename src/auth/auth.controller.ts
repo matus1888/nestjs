@@ -9,17 +9,14 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
-import {
-  JwtAuthGuard,
-  LocalAuthGuard,
-  RefreshTokenGuard,
-} from 'src/common/guards';
+import { JwtAuthGuard, RefreshTokenGuard } from 'src/common/guards';
 
 export interface AuthRequestBody extends Request {
   user: {
     sub: string;
     email: string;
     refreshToken: string;
+    password: string;
   };
 }
 
@@ -35,14 +32,22 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('iam')
+  async iam(
+    @Request() req: { headers: { authorization: string } },
+    @Body() body: { mail: string },
+  ) {
+    return this.authService.iam(req.headers.authorization, body.mail);
+  }
   /**
    * Вход в систему (получение access и refresh токенов)
    */
-  @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Request() req: AuthRequestBody) {
-    return this.authService.login(req.user);
+  async login(@Body() body: AuthRequestBody) {
+    console.log(body.user);
+    return this.authService.login(body.user);
   }
 
   /**
